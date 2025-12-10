@@ -35,10 +35,6 @@ public actor MusicBrainzClient {
         request.httpMethod = method
         request.httpBody = body
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(
-            "Discogs token=\(cfg.authToken)",
-            forHTTPHeaderField: "Authorization"
-        )
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         return request
