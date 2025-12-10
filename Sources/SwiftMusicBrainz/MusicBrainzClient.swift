@@ -39,6 +39,7 @@ public actor MusicBrainzClient {
             "Discogs token=\(cfg.authToken)",
             forHTTPHeaderField: "Authorization"
         )
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
 
         return request
     }
