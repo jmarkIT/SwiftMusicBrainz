@@ -10,6 +10,8 @@ import Foundation
 public actor MusicBrainzClient {
     private let session: URLSession
     private let cfg: MusicBrainzConfig
+    private let rateLimiter = RateLimiter()
+    private let minInterval: TimeInterval = 1.0
 
     public init(session: URLSession = .shared, cfg: MusicBrainzConfig) {
         self.session = session
@@ -52,6 +54,7 @@ public actor MusicBrainzClient {
             queryItems: queryItems,
             body: body
         )
+        await rateLimiter.waitIfNeeded(minInterval: minInterval)
         let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
@@ -73,5 +76,22 @@ extension MusicBrainzClient {
             queryItems: queryItems,
             body: nil
         )
+    }
+}
+
+actor RateLimiter {
+    private var lastRequestTime: Date?
+
+    func waitIfNeeded(minInterval: TimeInterval) async {
+        let now = Date()
+        if let last = lastRequestTime {
+            let delta = now.timeIntervalSince(last)
+            if delta < minInterval {
+                try? await Task.sleep(
+                    nanoseconds: UInt64((minInterval - delta) * 1_000_000_000)
+                )
+            }
+        }
+        lastRequestTime = Date()
     }
 }
