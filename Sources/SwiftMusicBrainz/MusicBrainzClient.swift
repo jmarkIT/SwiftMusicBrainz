@@ -9,7 +9,25 @@ import Foundation
 import SwiftAPIClient
 
 public actor MusicBrainzClient: APIClient {
-    
+    public let session: URLSession
+    public let baseURL: URL
+    public let defaultHeaders: [String: String]
+    private let rateLimiter = RateLimiter()
+    private let minInterval: TimeInterval = 1.0
+
+    public init(session: URLSession = .shared, cfg: MusicBrainzConfig) {
+        self.session = session
+        self.baseURL = MusicBrainzConfig.baseUrl
+        self.defaultHeaders = [
+            "Accept": "application/json", "Content-Type": "application/json",
+            "User-Agent": cfg.getUserAgent(),
+        ]
+    }
+
+    public func prepareForRequest() async {
+        await rateLimiter.waitIfNeeded(minInterval: minInterval)
+    }
+
 }
 
 //public actor MusicBrainzClient {
@@ -74,29 +92,31 @@ extension MusicBrainzClient {
     public func getRelease(releaseId: String) async throws
         -> MusicBrainzeRelease
     {
+        await prepareForRequest()
         let queryItems = [URLQueryItem(name: "inc", value: "genres")]
-        return try await perform(
-            "release/\(releaseId)",
-            method: "GET",
-            queryItems: queryItems,
-            body: nil
-        )
+        return try await get("release/\(releaseId)", queryItems: queryItems)
+        //        return try await perform(
+        //            "release/\(releaseId)",
+        //            method: "GET",
+        //            queryItems: queryItems,
+        //            body: nil
+        //        )
     }
 }
 
-actor RateLimiter {
-    private var lastRequestTime: Date?
-
-    func waitIfNeeded(minInterval: TimeInterval) async {
-        let now = Date()
-        if let last = lastRequestTime {
-            let delta = now.timeIntervalSince(last)
-            if delta < minInterval {
-                try? await Task.sleep(
-                    nanoseconds: UInt64((minInterval - delta) * 1_000_000_000)
-                )
-            }
-        }
-        lastRequestTime = Date()
-    }
-}
+//actor RateLimiter {
+//    private var lastRequestTime: Date?
+//
+//    func waitIfNeeded(minInterval: TimeInterval) async {
+//        let now = Date()
+//        if let last = lastRequestTime {
+//            let delta = now.timeIntervalSince(last)
+//            if delta < minInterval {
+//                try? await Task.sleep(
+//                    nanoseconds: UInt64((minInterval - delta) * 1_000_000_000)
+//                )
+//            }
+//        }
+//        lastRequestTime = Date()
+//    }
+//}
