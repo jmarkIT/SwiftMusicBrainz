@@ -31,7 +31,7 @@ public actor MusicBrainzClient: APIClient {
 }
 
 extension MusicBrainzClient {
-    public func getRelease(releaseId: String) async throws
+    public func getRelease(for releaseId: String) async throws
         -> MusicBrainzRelease
     {
         await prepareForRequest()
