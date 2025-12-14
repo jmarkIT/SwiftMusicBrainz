@@ -90,7 +90,7 @@ public actor MusicBrainzClient: APIClient {
 
 extension MusicBrainzClient {
     public func getRelease(releaseId: String) async throws
-        -> MusicBrainzeRelease
+        -> MusicBrainzRelease
     {
         await prepareForRequest()
         let queryItems = [URLQueryItem(name: "inc", value: "genres")]
