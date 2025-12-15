@@ -37,11 +37,12 @@ extension MusicBrainzClient {
         await prepareForRequest()
         let queryItems = [URLQueryItem(name: "inc", value: "genres")]
         return try await get("release/\(releaseId)", queryItems: queryItems)
-        //        return try await perform(
-        //            "release/\(releaseId)",
-        //            method: "GET",
-        //            queryItems: queryItems,
-        //            body: nil
-        //        )
+    }
+}
+
+extension MusicBrainzClient {
+    public func getGenres() async throws -> [MusicBrainzGenre] {
+        await prepareForRequest()
+        return try await get("genre/all")
     }
 }
