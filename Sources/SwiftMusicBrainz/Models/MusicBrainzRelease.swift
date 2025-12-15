@@ -12,7 +12,3 @@ public struct MusicBrainzRelease: Identifiable, Codable, Sendable {
     public let genres: [MusicBrainzGenre]
 }
 
-public struct MusicBrainzGenre: Identifiable, Codable, Sendable {
-    public let id: String
-    public let name: String
-}
