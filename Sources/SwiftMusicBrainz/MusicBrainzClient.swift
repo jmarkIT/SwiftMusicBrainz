@@ -41,8 +41,42 @@ extension MusicBrainzClient {
 }
 
 extension MusicBrainzClient {
-    public func getGenres() async throws -> [MusicBrainzGenre] {
+    func getGenresPage(limit: Int = 100, offset: Int) async throws -> MusicBrainzGenreResponse {
         await prepareForRequest()
-        return try await get("genre/all")
+        
+        let queryItems = [
+            URLQueryItem(name: "fmt", value: "json"),
+            URLQueryItem(name: "limit", value: String(limit)),
+            URLQueryItem(name: "offset", value: String(offset)),
+        ]
+        
+        return try await get("genre/all", queryItems: queryItems)
+    }
+}
+
+extension MusicBrainzClient {
+    public func getAllGenres() async throws -> [MusicBrainzGenre] {
+        var allGenres: [MusicBrainzGenre] = []
+        var offset = 0
+        var limit = 100
+        var totalCount: Int? = nil
+        
+        while true {
+            let response = try await getGenresPage(limit: limit, offset: offset)
+            
+            allGenres.append(contentsOf: response.genres)
+            
+            if totalCount == nil {
+                totalCount = response.genreCount
+            }
+            
+            offset += response.genres.count
+            
+            if let totalCount, allGenres.count >= totalCount {
+                break
+            }
+        }
+        
+        return allGenres
     }
 }
