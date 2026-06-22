@@ -9,5 +9,6 @@ public struct MusicBrainzRelease: Identifiable, Codable, Sendable {
   public let id: String
   public let title: String
   public let date: String?
-  public let genres: [MusicBrainzGenre]
+  public let artistCredits: [MusicBrainzArtistCredit]?
+  public let genres: [MusicBrainzGenre]?
 }

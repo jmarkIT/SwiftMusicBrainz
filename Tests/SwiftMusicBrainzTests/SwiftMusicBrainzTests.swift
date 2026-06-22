@@ -42,7 +42,7 @@ struct MusicBrainzModelTests {
     #expect(release.id == "release-1")
     #expect(release.title == "Selected Ambient Works")
     #expect(release.date == nil)
-    #expect(release.genres.map(\.name) == ["ambient", "electronic"])
+    #expect(release.genres?.map(\.name) == ["ambient", "electronic"])
   }
 
   @Test("Decodes MusicBrainz's hyphenated genre metadata keys")
@@ -70,7 +70,7 @@ struct MusicBrainzModelTests {
 
 @Suite("MusicBrainz client", .serialized)
 struct MusicBrainzClientTests {
-  @Test("Requests a release with genres and the configured headers")
+  @Test("Requests a release with the selected includes")
   func requestsRelease() async throws {
     URLProtocolStub.configure(
       responses: [
@@ -88,7 +88,10 @@ struct MusicBrainzClientTests {
     )
     let client = makeClient()
 
-    let release = try await client.getRelease(for: "release-1")
+    let release = try await client.getRelease(
+      for: "release-1",
+      withInc: [.artistCredits, .genres]
+    )
     let request = try #require(URLProtocolStub.requests.first)
     let components = try #require(
       URLComponents(url: request.url!, resolvingAgainstBaseURL: false)
@@ -99,7 +102,13 @@ struct MusicBrainzClientTests {
     #expect(request.httpMethod == "GET")
     #expect(components.path == "/ws/2/release/release-1")
     #expect(
-      components.queryItems == [URLQueryItem(name: "inc", value: "genres")]
+      components.queryItems
+        == [
+          URLQueryItem(
+            name: "inc",
+            value: "artist-credits+genres"
+          )
+        ]
     )
     #expect(request.value(forHTTPHeaderField: "Accept") == "application/json")
     #expect(
@@ -109,6 +118,34 @@ struct MusicBrainzClientTests {
       request.value(forHTTPHeaderField: "User-Agent")
         == "TestClient/1.0 ( tests@example.com )"
     )
+  }
+
+  @Test("Omits the include query when no includes are requested")
+  func requestsReleaseWithoutIncludes() async throws {
+    URLProtocolStub.configure(
+      responses: [
+        .json(
+          """
+          {
+            "id": "release-1",
+            "title": "Blue",
+            "date": "1971-06-22",
+            "genres": []
+          }
+          """
+        )
+      ]
+    )
+    let client = makeClient()
+
+    _ = try await client.getRelease(for: "release-1")
+    let request = try #require(URLProtocolStub.requests.first)
+    let components = try #require(
+      URLComponents(url: request.url!, resolvingAgainstBaseURL: false)
+    )
+
+    #expect(components.path == "/ws/2/release/release-1")
+    #expect(components.queryItems == nil)
   }
 
   @Test("Requests a genre page with limit and offset")

@@ -31,11 +31,15 @@ public actor MusicBrainzClient: APIClient {
 }
 
 extension MusicBrainzClient {
-  public func getRelease(for releaseId: String) async throws
+  public func getRelease(for releaseId: String, withInc: [IncParameters]? = nil)
+    async throws
     -> MusicBrainzRelease
   {
     await prepareForRequest()
-    let queryItems = [URLQueryItem(name: "inc", value: "genres")]
+    let queryItems: [URLQueryItem] = withInc.map { inc in
+      let value = inc.map(\.rawValue).joined(separator: "+")
+      return [URLQueryItem(name: "inc", value: value)]
+    } ?? []
     return try await get("release/\(releaseId)", queryItems: queryItems)
   }
 }
@@ -83,8 +87,7 @@ extension MusicBrainzClient {
   }
 }
 
-enum IncParameters {
-  case artistCredits
-  case genres
-
+public enum IncParameters: String {
+  case artistCredits = "artist-credits"
+  case genres = "genres"
 }
