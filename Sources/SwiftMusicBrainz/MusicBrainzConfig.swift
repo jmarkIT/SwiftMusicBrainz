@@ -7,24 +7,24 @@
 import Foundation
 
 public struct MusicBrainzConfig {
-    static let baseUrl = URL(string: "https://musicbrainz.org/ws/2")!
-    public var appName: String
-    public var appVersion: String
-    public var contactInfo: String
+  static let baseUrl = URL(string: "https://musicbrainz.org/ws/2")!
+  public var appName: String
+  public var appVersion: String
+  public var contactInfo: String
 
-    public init(
-        appName: String,
-        appVersion: String,
-        contactInfo: String
-    ) {
-        self.appName = appName
-        self.appVersion = appVersion
-        self.contactInfo = contactInfo
-    }
+  public init(
+    appName: String,
+    appVersion: String,
+    contactInfo: String
+  ) {
+    self.appName = appName
+    self.appVersion = appVersion
+    self.contactInfo = contactInfo
+  }
 }
 
 extension MusicBrainzConfig {
-    public func getUserAgent() -> String {
-        return "\(appName)/\(appVersion) ( \(contactInfo) )"
-    }
+  public func getUserAgent() -> String {
+    return "\(appName)/\(appVersion) ( \(contactInfo) )"
+  }
 }
